@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Lolita Run | Campeonato da Família Sales & Protetora da Litorânea</title>
+  <link rel="icon" type="image/jpeg" href="lolita.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #090d16;
+      color: #fff;
+      font-family: 'Fredoka', cursive, sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      width: 100vw;
+    }
+
+    #gameContainer {
+      position: relative;
+      width: 96%;
+      max-width: 920px;
+      aspect-ratio: 920 / 520;
+      max-height: 90vh;
+      background: #000;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* OVERLAYS */
+    .screen-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 15, 29, 0.93);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      z-index: 25;
+      transition: opacity 0.3s ease;
+      overflow-y: auto;
+    }
+
+    .screen-overlay.hidden {
+      display: none !important;
+    }
+
+    .lolita-avatar-frame {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      padding: 4px;
+      background: linear-gradient(135deg, #ec4899, #fbbf24, #10b981);
+      box-shadow: 0 10px 25px rgba(236, 72, 153, 0.45);
+      margin-bottom: 8px;
+      animation: bounceFloat 3s ease-in-out infinite;
+    }
+
+    .lolita-avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #111;
+    }
+
+    @keyframes bounceFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .game-title {
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .game-title span {
+      background: linear-gradient(135deg, #f43f5e, #fbbf24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .game-subtitle {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      max-width: 620px;
+      line-height: 1.4;
+    }
+
+    .rescue-highlight {
+      background: rgba(236, 72, 153, 0.15);
+      border: 1px solid rgba(236, 72, 153, 0.4);
+      color: #f472b6;
+      padding: 6px 16px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .instructions-box {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 8px 18px;
+      margin-bottom: 18px;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .inst-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .inst-item i { color: #fbbf24; }
+
+    .btn-play {
+      background: linear-gradient(135deg, #f43f5e, #e11d48);
+      color: #fff;
+      border: none;
+      padding: 12px 34px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      border-radius: 9999px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(225, 29, 72, 0.45);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      font-family: 'Fredoka', cursive;
+    }
+
+    .btn-play:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 30px rgba(225, 29, 72, 0.6);
+    }
+
+    /* HUD */
+    .hud {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .hud-left {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .score-badge {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 5px 12px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .score-badge i { color: #fbbf24; }
+
+    .stage-badge {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.85), rgba(6, 182, 212, 0.85));
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+    }
+
+    .hud-right {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .hud-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .hud-btn:hover { background: rgba(255, 255, 255, 0.25); }
+    .hud-btn.gold { color: #fbbf24; border-color: rgba(251, 191, 36, 0.5); }
+
+    /* BOTÕES DE AÇÃO NA TELA */
+    .action-buttons-mobile {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    .btn-action {
+      border: 2px solid #fff;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 9999px;
+      font-family: 'Fredoka', cursive;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+      transition: transform 0.15s;
+    }
+
+    .btn-action:active { transform: scale(0.92); }
+    .btn-bark { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .btn-superball { background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899); }
+
+    .ball-counter {
+      background: #fff;
+      color: #7c3aed;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+
+    /* TOAST DE FASE */
+    .stage-toast {
+      position: absolute;
+      top: 65px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: #fff;
+      padding: 8px 22px;
+      border-radius: 9999px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border: 2px solid #fff;
+      z-index: 15;
+      display: none;
+      animation: popIn 0.4s ease-out;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    @keyframes popIn {
+      0% { transform: translateX(-50%) scale(0.6); opacity: 0; }
+      100% { transform: translateX(-50%) scale(1); opacity: 1; }
+    }
+
+    /* STATS & RANKING MODAL */
+    .stats-card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 10px 24px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 20px;
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .stat-val {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fbbf24;
+    }
+
+    .player-name-card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      border-radius: 14px;
+      padding: 10px 18px;
+      margin-bottom: 14px;
+      width: 100%;
+      max-width: 440px;
+    }
+    .player-name-card label {
+      font-size: 0.85rem;
+      color: #fbbf24;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .name-input-wrapper input {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 10px;
+      color: #fff;
+      padding: 8px 14px;
+      font-size: 0.95rem;
+      font-family: 'Fredoka', cursive;
+      text-align: center;
+      outline: none;
+      margin-bottom: 6px;
+    }
+    .name-input-wrapper input:focus {
+      border-color: #fbbf24;
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+    }
+    .quick-names {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-quick-name {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-quick-name.active { background: #ec4899 !important; border-color: #f43f5e !important; color: #fff !important; font-weight: 700; transform: scale(1.05); }
+    .btn-quick-name:hover {
+      background: rgba(251, 191, 36, 0.25);
+      border-color: #fbbf24;
+      color: #fff;
+    }
+
+    /* RANKING LEADERBOARD SECTION */
+    .leaderboard-section {
+      width: 100%;
+      max-width: 480px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      border-radius: 16px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+
+    .leaderboard-title {
+      font-size: 1.05rem;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .player-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .player-select {
+      flex: 1;
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none;
+    }
+
+    .btn-save-score {
+      background: #10b981;
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Fredoka', cursive;
+    }
+
+    .btn-save-score:hover { background: #059669; }
+
+    .ranking-list {
+      list-style: none;
+      max-height: 140px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-right: 4px;
+    }
+
+    .ranking-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .ranking-item.top1 {
+      background: linear-gradient(90deg, rgba(251, 191, 36, 0.25), rgba(255, 255, 255, 0.05));
+      border-color: rgba(251, 191, 36, 0.5);
+      font-weight: 700;
+    }
+
+    .ranking-item.top2 {
+      background: linear-gradient(90deg, rgba(226, 232, 240, 0.2), rgba(255, 255, 255, 0.05));
+      border-color: rgba(226, 232, 240, 0.4);
+    }
+
+    .ranking-item.top3 {
+      background: linear-gradient(90deg, rgba(217, 119, 6, 0.2), rgba(255, 255, 255, 0.05));
+      border-color: rgba(217, 119, 6, 0.4);
+    }
+
+    .ranking-pos {
+      width: 26px;
+      font-weight: 800;
+    }
+
+    .ranking-name {
+      flex: 1;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .ranking-pts {
+      font-weight: 800;
+      color: #fbbf24;
+    }
+
+    .buttons-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Fredoka', cursive;
+      transition: all 0.2s;
+    }
+
+    .footer-note {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #64748b;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      text-align: center;
+    }
+
+    .footer-note span { color: #ec4899; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="920" height="520"></canvas>
+
+    <div id="stageToast" class="stage-toast">
+      🚗 VIAGEM: CHEGANDO EM SANTA INÊS! 🏡
+    </div>
+
+    <!-- HUD -->
+    <div class="hud">
+      <div class="hud-left">
+        <div class="score-badge stage-badge" id="stageBadge">
+          <i class="fas fa-umbrella-beach"></i>
+          <span id="stageName">Fase 1: Praia Litorânea</span>
+        </div>
+        <div class="score-badge player-pill" style="background: rgba(236,72,153,0.28); border: 1px solid rgba(244,63,94,0.5); font-weight:700;">
+          <i class="fas fa-paw" style="color: #f43f5e;"></i>
+          <span id="hudPlayerName">Papai Sales 👔</span>
+        </div>
+        <div class="score-badge">
+          <i class="fas fa-bone"></i>
+          <span id="scoreDisplay">0</span>
+        </div>
+        <div class="score-badge">
+          <i class="fas fa-shield-heart" style="color: #ec4899;"></i>
+          <span id="rescuesDisplay">0 Salvos</span>
+        </div>
+        <div class="score-badge">
+          <i class="fas fa-route"></i>
+          <span id="distanceDisplay">0m</span>
+        </div>
+      </div>
+      <div class="hud-right">
+        <button id="btnOpenRanking" class="hud-btn gold" title="Ver Ranking da Família">
+          <i class="fas fa-trophy"></i>
+        </button>
+        <button id="btnSound" class="hud-btn" title="Ativar/Desativar Som">
+          <i class="fas fa-volume-up"></i>
+        </button>
+        <button id="btnPause" class="hud-btn" title="Pausar">
+          <i class="fas fa-pause"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- BOTÕES DE AÇÃO -->
+    <div class="action-buttons-mobile">
+      <button id="btnBark" class="btn-action btn-bark" title="Latir Au Au! (Tecla L)">
+        <i class="fas fa-comment-dots"></i>
+        <span>AU! AU!</span>
+      </button>
+      <button id="btnSuperBall" class="btn-action btn-superball" title="Lançar Super Bola (Tecla B / Shift)">
+        <i class="fas fa-baseball"></i>
+        <span>BOLA</span>
+        <span class="ball-counter" id="ballCounter">3</span>
+      </button>
+    </div>
+
+    <!-- TELA INICIAL (START) -->
+    <div id="startScreen" class="screen-overlay">
+      <div class="lolita-avatar-frame">
+        <img src="lolita.jpg" alt="Lolita Poodle Preta" class="lolita-avatar-img" onerror="this.src='https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=200&q=80'">
+      </div>
+      <h1 class="game-title">Lolita <span>Run</span></h1>
+      <p class="game-subtitle">
+        A fiel poodle preta protegendo <b>Papai Sales</b>, <b>Mamãe Kássia</b>, <b>Vovó Chagas</b> e <b>Lorena</b>!
+      </p>
+
+      <div class="rescue-highlight">
+        <i class="fas fa-trophy" style="color: #fbbf24;"></i>
+        <span><b>CAMPEONATO DA FAMÍLIA:</b> Salve a família, colete ossinhos e dispute o 1º Lugar no Ranking Oficial!</span>
+      </div>
+
+      <!-- DIGITAR NOME DO JOGADOR -->
+      <div class="player-name-card">
+        <label for="initialPlayerName"><i class="fas fa-id-card"></i> <b>Digite seu Nome para Disputar o Ranking:</b></label>
+        <div class="name-input-wrapper">
+          <input type="text" id="initialPlayerName" placeholder="Seu nome (ex: Papai Sales, Kássia...)" maxlength="25">
+          <div class="quick-names">
+            <button type="button" class="btn-quick-name" data-name="Papai Sales 👔">👔 Papai</button>
+            <button type="button" class="btn-quick-name" data-name="Mamãe Kássia 💖">💖 Mamãe</button>
+            <button type="button" class="btn-quick-name" data-name="Vovó Chagas 👵">👵 Vovó</button>
+            <button type="button" class="btn-quick-name" data-name="Lorena 👧">👧 Lorena</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="instructions-box">
+        <div class="inst-item">
+          <i class="fas fa-arrow-up"></i>
+          <span><b>Pular / Salto Duplo:</b> Espaço / Toque</span>
+        </div>
+        <div class="inst-item">
+          <i class="fas fa-baseball"></i>
+          <span><b>Super Bola:</b> Tecla <b>B</b></span>
+        </div>
+        <div class="inst-item">
+          <i class="fas fa-comment-dots"></i>
+          <span><b>Latir Au Au:</b> Tecla <b>L</b></span>
+        </div>
+      </div>
+
+      <button id="btnStart" class="btn-play">
+        <i class="fas fa-play"></i> Começar Campeonato com a Lolita!
+      </button>
+    </div>
+
+    <!-- TELA DE PAUSA -->
+    <div id="pauseScreen" class="screen-overlay hidden">
+      <h2 class="game-title">Jogo <span>Pausado</span></h2>
+      <p class="game-subtitle">Lolita recebendo carinho da família no intervalo...</p>
+      <button id="btnResume" class="btn-play">
+        <i class="fas fa-play"></i> Continuar Missão!
+      </button>
+    </div>
+
+    <!-- TELA DE GAME OVER & RANKING -->
+    <div id="gameOverScreen" class="screen-overlay hidden">
+      <h2 class="game-title" style="color: #f43f5e;">Corrida <span>Finalizada!</span></h2>
+      <p class="game-subtitle" id="gameOverMsg">Lolita protegeu bravamente a família Sales hoje!</p>
+
+      <div class="stats-card">
+        <div class="stat-box">
+          <span class="stat-label">Sua Pontuação</span>
+          <span class="stat-val" id="finalScore">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Resgates</span>
+          <span class="stat-val" id="finalRescues" style="color: #ec4899;">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Distância</span>
+          <span class="stat-val" id="finalDistance">0m</span>
+        </div>
+      </div>
+
+      <!-- SEÇÃO DO RANKING DA FAMÍLIA -->
+      <div class="leaderboard-section">
+        <div class="leaderboard-title">
+          <i class="fas fa-crown"></i>
+          <span>RANKING OFICIAL DA FAMÍLIA SALES</span>
+        </div>
+
+        <div class="player-input-row" id="saveScoreRow">
+          <input type="text" id="finalPlayerNameInput" class="player-select" placeholder="Digite seu Nome para Gravar" style="font-weight:700; text-align:center;">
+          <button id="btnSaveScore" class="btn-save-score">
+            <i class="fas fa-check"></i> Gravar Nome
+          </button>
+        </div>
+
+        <ul class="ranking-list" id="rankingList">
+          <!-- PREENCHIDO VIA JAVASCRIPT -->
+        </ul>
+      </div>
+
+      <div class="buttons-group">
+        <button id="btnRestart" class="btn-play">
+          <i class="fas fa-rotate-right"></i> Jogar de Novo
+        </button>
+        <button id="btnShare" class="btn-secondary">
+          <i class="fab fa-whatsapp"></i> Desafiar no Zap da Família
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Dedicado a <span>Sales</span>, <span>Kássia</span>, <span>Vovó Chagas</span>, <span>Lorena</span>, <span>Diana</span> e à <span>Lolita</span> 🐩💖
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI ELEMENTS
+    const startScreen = document.getElementById('startScreen');
+    const pauseScreen = document.getElementById('pauseScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const stageToast = document.getElementById('stageToast');
+
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const rescuesDisplay = document.getElementById('rescuesDisplay');
+    const distanceDisplay = document.getElementById('distanceDisplay');
+    const stageBadge = document.getElementById('stageBadge');
+    const stageName = document.getElementById('stageName');
+    const ballCounter = document.getElementById('ballCounter');
+
+    const finalScore = document.getElementById('finalScore');
+    const finalRescues = document.getElementById('finalRescues');
+    const finalDistance = document.getElementById('finalDistance');
+    const rankingList = document.getElementById('rankingList');
+    const finalPlayerNameInput = document.getElementById('finalPlayerNameInput');
+    const initialPlayerName = document.getElementById('initialPlayerName');
+    const btnSaveScore = document.getElementById('btnSaveScore');
+    const saveScoreRow = document.getElementById('saveScoreRow');
+
+    const btnStart = document.getElementById('btnStart');
+    const btnResume = document.getElementById('btnResume');
+    const btnRestart = document.getElementById('btnRestart');
+    const btnPause = document.getElementById('btnPause');
+    const btnSound = document.getElementById('btnSound');
+    const btnShare = document.getElementById('btnShare');
+    const btnSuperBall = document.getElementById('btnSuperBall');
+    const btnBark = document.getElementById('btnBark');
+    const btnOpenRanking = document.getElementById('btnOpenRanking');
+
+    // AUDIO SYNTHESIZER COM LATIDO ORGÂNICO REALÍSTICO
+    let audioEnabled = true;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, type, duration, slideFreq = null, vol = 0.2) {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        if (slideFreq) {
+          osc.frequency.exponentialRampToValueAtTime(slideFreq, audioCtx.currentTime + duration);
+        }
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    // SÍNTESE DO LATIDO "AU! AU!" ENCORPADO DE POODLE
+    function soundBark() {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const now = audioCtx.currentTime;
+
+        // Latido 1 ("Au!")
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        const filter1 = audioCtx.createBiquadFilter();
+        filter1.type = 'bandpass';
+        filter1.frequency.setValueAtTime(820, now);
+        filter1.Q.setValueAtTime(3.2, now);
+
+        osc1.type = 'sawtooth';
+        osc1.frequency.setValueAtTime(560, now);
+        osc1.frequency.exponentialRampToValueAtTime(230, now + 0.13);
+        gain1.gain.setValueAtTime(0.45, now);
+        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.13);
+
+        osc1.connect(filter1);
+        filter1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.13);
+
+        // Latido 2 ("Au!")
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        const filter2 = audioCtx.createBiquadFilter();
+        filter2.type = 'bandpass';
+        filter2.frequency.setValueAtTime(960, now + 0.12);
+        filter2.Q.setValueAtTime(3.2, now + 0.12);
+
+        osc2.type = 'sawtooth';
+        osc2.frequency.setValueAtTime(640, now + 0.12);
+        osc2.frequency.exponentialRampToValueAtTime(260, now + 0.27);
+        gain2.gain.setValueAtTime(0.42, now + 0.12);
+        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.27);
+
+        osc2.connect(filter2);
+        filter2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(now + 0.12);
+        osc2.stop(now + 0.27);
+      } catch (e) {}
+    }
+
+    function soundJump() { playTone(290, 'sine', 0.15, 620); }
+    function soundDoubleJump() { playTone(460, 'triangle', 0.2, 950); }
+    function soundRescueJoy() {
+      [523, 659, 784, 1046].forEach((f, idx) => {
+        setTimeout(() => playTone(f, 'sine', 0.18, null, 0.28), idx * 75);
+      });
+    }
+    function soundCollectBone() {
+      playTone(587, 'sine', 0.08);
+      setTimeout(() => playTone(880, 'sine', 0.16), 60);
+    }
+    function soundShootBall() {
+      playTone(320, 'sine', 0.25, 90, 0.3);
+      setTimeout(() => playTone(600, 'triangle', 0.15, 1200), 40);
+    }
+    function soundExplode() {
+      playTone(140, 'sawtooth', 0.3, 40, 0.35);
+    }
+
+    btnSound.addEventListener('click', (e) => {
+      e.stopPropagation();
+      audioEnabled = !audioEnabled;
+      btnSound.innerHTML = audioEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+      btnSound.style.color = audioEnabled ? '#fff' : '#f43f5e';
+    });
+
+    // SISTEMA DE RANKING PERSISTENTE DA FAMÍLIA SALES
+    const DEFAULT_LEADERBOARD = [
+      { name: 'Mamãe Kássia 💖', score: 980, rescues: 3 },
+      { name: 'Papai Sales 👔', score: 850, rescues: 2 },
+      { name: 'Vovó Chagas 👵', score: 650, rescues: 2 },
+      { name: 'Lorena 👧', score: 520, rescues: 1 },
+      { name: 'Diana Vira-lata 🐕', score: 410, rescues: 1 }
+    ];
+
+    function getLeaderboard() {
+      const saved = localStorage.getItem('lolita_family_leaderboard');
+      if (!saved) return DEFAULT_LEADERBOARD;
+      try { return JSON.parse(saved); }
+      catch (e) { return DEFAULT_LEADERBOARD; }
+    }
+
+    function saveToLeaderboard(playerName, newScore, newRescues) {
+      let list = getLeaderboard();
+      list.push({ name: playerName, score: newScore, rescues: newRescues });
+      list.sort((a, b) => b.score - a.score);
+      list = list.slice(0, 7); // Guarda os 7 melhores
+      localStorage.setItem('lolita_family_leaderboard', JSON.stringify(list));
+      renderLeaderboardUI();
+    }
+
+    function renderLeaderboardUI() {
+      const list = getLeaderboard();
+      rankingList.innerHTML = '';
+
+      list.forEach((entry, idx) => {
+        const li = document.createElement('li');
+        let badgeClass = '';
+        let posIcon = `${idx + 1}º`;
+
+        if (idx === 0) { badgeClass = 'top1'; posIcon = '🥇'; }
+        else if (idx === 1) { badgeClass = 'top2'; posIcon = '🥈'; }
+        else if (idx === 2) { badgeClass = 'top3'; posIcon = '🥉'; }
+
+        li.className = `ranking-item ${badgeClass}`;
+        li.innerHTML = `
+          <span class="ranking-pos">${posIcon}</span>
+          <span class="ranking-name">${entry.name} <small style="color:#94a3b8;">(${entry.rescues || 0} salvos)</small></span>
+          <span class="ranking-pts">${entry.score} pts</span>
+        `;
+        rankingList.appendChild(li);
+      });
+    }
+
+    let currentPlayerName = localStorage.getItem('lolita_current_player') || 'Papai Sales 👔';
+    if (initialPlayerName) {
+      initialPlayerName.value = currentPlayerName;
+      document.querySelectorAll('.btn-quick-name').forEach(b => {
+        b.addEventListener('click', () => {
+          document.querySelectorAll('.btn-quick-name').forEach(el => el.classList.remove('active'));
+          b.classList.add('active');
+          initialPlayerName.value = b.getAttribute('data-name');
+          currentPlayerName = initialPlayerName.value;
+          localStorage.setItem('lolita_current_player', currentPlayerName);
+          const hp = document.getElementById('hudPlayerName'); if (hp) hp.textContent = currentPlayerName;
+          currentPlayerName = initialPlayerName.value;
+          localStorage.setItem('lolita_current_player', currentPlayerName);
+        });
+      });
+    }
+
+    btnSaveScore.addEventListener('click', () => {
+      const entered = finalPlayerNameInput.value.trim() || currentPlayerName;
+      currentPlayerName = entered;
+      localStorage.setItem('lolita_current_player', currentPlayerName);
+      saveToLeaderboard(entered, score, rescuesCount);
+      soundRescueJoy();
+      btnSaveScore.innerHTML = '<i class="fas fa-check-double"></i> Gravado!';
+      btnSaveScore.style.background = '#059669';
+    });
+
+    btnOpenRanking.addEventListener('click', (e) => {
+      e.stopPropagation();
+      renderLeaderboardUI();
+      saveScoreRow.style.display = 'none';
+      finalScore.textContent = score;
+      finalRescues.textContent = rescuesCount;
+      finalDistance.textContent = `${distance}m`;
+      gameOverScreen.classList.remove('hidden');
+    });
+
+    // CONSTANTES DO MUNDO
+    const GROUND_Y = 415;
+    let gameSpeed = 5.4;
+    let baseSpeed = 5.4;
+    let score = 0;
+    let distance = 0;
+    let rescuesCount = 0;
+    let ballsCount = 3;
+    let currentStage = 1;
+
+    let gameState = 'START';
+    let frameCount = 0;
+
+    const particles = [];
+    const projectiles = [];
+    const floatingTexts = [];
+
+    function addParticle(x, y, color, count = 5) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: x, y: y,
+          vx: (Math.random() - 0.5) * 6,
+          vy: (Math.random() - 0.5) * 6 - 2,
+          size: Math.random() * 5 + 3,
+          color: color, alpha: 1, life: 30
+        });
+      }
+    }
+
+    function addFloatingText(x, y, text, color = '#ec4899', isBig = false) {
+      floatingTexts.push({
+        x: x, y: y, text: text, color: color,
+        alpha: 1, vy: -1.8, life: 85, isBig: isBig
+      });
+    }
+
+    // A PROTAGONISTA: LOLITA POODLE PRETA
+    const lolita = {
+      x: 120,
+      y: GROUND_Y - 50,
+      width: 58,
+      height: 48,
+      vy: 0,
+      gravity: 0.72,
+      jumpForce: -13.5,
+      jumpsLeft: 2,
+      isGrounded: true,
+      legCycle: 0,
+      tailWag: 0,
+      barkTimer: 0,
+
+      reset() {
+        this.y = GROUND_Y - 50;
+        this.vy = 0;
+        this.jumpsLeft = 2;
+        this.isGrounded = true;
+        this.barkTimer = 0;
+      },
+
+      jump() {
+        initAudio();
+        if (this.jumpsLeft > 0) {
+          this.vy = this.jumpForce;
+          this.isGrounded = false;
+          if (this.jumpsLeft === 2) {
+            soundJump();
+            addParticle(this.x + 20, this.y + 45, '#38bdf8', 6);
+          } else {
+            soundDoubleJump();
+            addParticle(this.x + 20, this.y + 25, '#ec4899', 8);
+          }
+          this.jumpsLeft--;
+        }
+      },
+
+      bark() {
+        initAudio();
+        soundBark();
+        this.barkTimer = 35;
+        addFloatingText(this.x + 40, this.y - 15, 'AU! AU! 🐾', '#fbbf24', true);
+      },
+
+      shootSuperBall() {
+        initAudio();
+        if (ballsCount <= 0) return;
+        ballsCount--;
+        ballCounter.textContent = ballsCount;
+        soundShootBall();
+        this.bark();
+
+        projectiles.push({
+          x: this.x + 52,
+          y: this.y + 18,
+          vx: 13.5,
+          radius: 14,
+          rot: 0
+        });
+
+        addParticle(this.x + 50, this.y + 20, '#fbbf24', 12);
+      },
+
+      update() {
+        this.vy += this.gravity;
+        this.y += this.vy;
+
+        if (this.y >= GROUND_Y - this.height) {
+          this.y = GROUND_Y - this.height;
+          this.vy = 0;
+          if (!this.isGrounded) addParticle(this.x + 25, GROUND_Y, '#94a3b8', 4);
+          this.isGrounded = true;
+          this.jumpsLeft = 2;
+        }
+
+        if (this.isGrounded) this.legCycle += 0.28;
+        else this.legCycle = 0;
+
+        this.tailWag = Math.sin(frameCount * 0.25) * 8;
+        if (this.barkTimer > 0) this.barkTimer--;
+      },
+
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // SOMBRA NO CHÃO
+        const shadowScale = Math.max(0.3, 1 - (GROUND_Y - (this.y + this.height)) / 200);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.beginPath();
+        ctx.ellipse(26, this.height + 4, 22 * shadowScale, 6 * shadowScale, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // PATAS TRASEIRAS COM POMPOM
+        const legFrontOffset = Math.sin(this.legCycle) * 11;
+        const legBackOffset = -Math.sin(this.legCycle) * 11;
+
+        ctx.strokeStyle = '#121217';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(10, 26); ctx.lineTo(8 + legBackOffset, this.height - 7);
+        ctx.stroke();
+
+        ctx.fillStyle = '#1e1e24';
+        ctx.beginPath();
+        ctx.arc(8 + legBackOffset, this.height - 4, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(36, 26); ctx.lineTo(36 + legFrontOffset, this.height - 7);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(36 + legFrontOffset, this.height - 4, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // CORPO POODLE (PEITO CHEIO E CINTURA FINA)
+        ctx.fillStyle = '#121217';
+        ctx.beginPath();
+        ctx.ellipse(28, 22, 16, 12, -Math.PI / 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(14, 23, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Cachos com reflexo suave
+        const curls = [
+          [14, 18, 7.5], [24, 14, 8.5], [34, 17, 8],
+          [12, 26, 7.5], [26, 27, 8], [36, 25, 7.5]
+        ];
+        curls.forEach(([cx, cy, r]) => {
+          ctx.fillStyle = '#1a1a22';
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#2d2d38';
+          ctx.beginPath();
+          ctx.arc(cx - 2, cy - 2, r * 0.45, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // RABINHO COM POMPOM
+        ctx.strokeStyle = '#121217';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(6, 20);
+        ctx.quadraticCurveTo(0, 10 + this.tailWag, 2, 4 + this.tailWag);
+        ctx.stroke();
+
+        ctx.fillStyle = '#1e1e24';
+        ctx.beginPath();
+        ctx.arc(2, 4 + this.tailWag, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // PATAS DIANTEIRAS COM POMPOM
+        ctx.strokeStyle = '#121217';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(14, 26); ctx.lineTo(14 - legBackOffset, this.height - 7);
+        ctx.stroke();
+        ctx.fillStyle = '#1e1e24';
+        ctx.beginPath();
+        ctx.arc(14 - legBackOffset, this.height - 4, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(42, 26); ctx.lineTo(42 - legFrontOffset, this.height - 7);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(42 - legFrontOffset, this.height - 4, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // COLEIRA ROSA & MEDALHINHA DOURADA
+        ctx.fillStyle = '#ec4899';
+        ctx.beginPath();
+        ctx.roundRect(32, 14, 8, 14, 3);
+        ctx.fill();
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(36, 28, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // CABEÇA & TOPETE POMPOSO
+        ctx.fillStyle = '#1a1a22';
+        ctx.beginPath();
+        ctx.arc(40, 2, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(47, 3, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#121217';
+        ctx.beginPath();
+        ctx.arc(41, 13, 14, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Orelhas longas com cachos
+        ctx.fillStyle = '#1a1a22';
+        ctx.beginPath();
+        ctx.ellipse(33, 17, 7, 14, Math.PI / 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Focinho fino afilado de poodle
+        ctx.fillStyle = '#121217';
+        ctx.beginPath();
+        ctx.moveTo(44, 10); ctx.lineTo(58, 14); ctx.lineTo(44, 20);
+        ctx.fill();
+
+        // Narizinho preto
+        ctx.fillStyle = '#020204';
+        ctx.beginPath();
+        ctx.arc(58, 14, 3.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Laço Rosa
+        ctx.fillStyle = '#f43f5e';
+        ctx.beginPath();
+        ctx.arc(44, 0, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Olho brilhante
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(47, 9, 2.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(48, 8, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // BALÃO VISUAL DE LATIDO
+        if (this.barkTimer > 0) {
+          ctx.fillStyle = '#fbbf24';
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(50, -22, 54, 20, 6);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#000';
+          ctx.font = 'bold 11px Fredoka';
+          ctx.fillText('AU! AU!', 55, -8);
+        }
+
+        ctx.restore();
+      }
+    };
+
+    // CENÁRIO & FAMÍLIA
+    let worldOffset = 0;
+    let clouds = [
+      { x: 100, y: 40, speed: 0.5, scale: 1 },
+      { x: 420, y: 65, speed: 0.3, scale: 1.2 },
+      { x: 760, y: 35, speed: 0.7, scale: 0.9 }
+    ];
+
+    let obstacles = [];
+    let items = [];
+    let rescueTargets = [];
+
+    // GERAR FAMILIAR EM PERIGO NA PISTA (PAPAI, MAMÃE, VOVÓ CHAGAS OU LORENA)
+    function spawnRescueTarget() {
+      const rand = Math.random();
+      let targetType, targetName, alertText;
+
+      if (rand < 0.28) {
+        targetType = 'sales';
+        targetName = 'Papai Sales 👔';
+        alertText = '🚨 PAPAI EM PERIGO! (+250 PTS)';
+      } else if (rand < 0.56) {
+        targetType = 'kassia';
+        targetName = 'Mamãe Kássia 💖';
+        alertText = '🚨 MAMÃE EM PERIGO! (+250 PTS)';
+      } else if (rand < 0.8) {
+        targetType = 'vovo';
+        targetName = 'Vovó Chagas 👵';
+        alertText = '🚨 VOVÓ EM PERIGO! (+250 PTS)';
+      } else {
+        targetType = 'lorena';
+        targetName = 'Lorena 👧';
+        alertText = '🚨 LORENA EM PERIGO! (+250 PTS)';
+      }
+
+      rescueTargets.push({
+        x: canvas.width + 60,
+        y: GROUND_Y - 55,
+        width: 46,
+        height: 55,
+        type: targetType,
+        name: targetName,
+        alertText: alertText,
+        saved: false,
+        animFrame: 0
+      });
+    }
+
+    let nextRescueTimer = 180;
+    let nextObstacleTimer = 85;
+    let nextItemTimer = 55;
+
+    function spawnObstacle() {
+      let type, w, h;
+      if (currentStage === 1) {
+        const rand = Math.random();
+        if (rand < 0.4) { type = 'coco'; w = 26; h = 26; }
+        else if (rand < 0.75) { type = 'caranguejo'; w = 36; h = 28; }
+        else { type = 'guardasol'; w = 32; h = 48; }
+      } else {
+        const rand = Math.random();
+        if (rand < 0.35) { type = 'pinto'; w = 24; h = 22; }
+        else if (rand < 0.7) { type = 'galinha'; w = 34; h = 32; }
+        else { type = 'tronco'; w = 38; h = 28; }
+      }
+
+      obstacles.push({
+        x: canvas.width + 50,
+        y: GROUND_Y - h,
+        width: w, height: h,
+        type: type, anim: 0
+      });
+    }
+
+    function spawnItem() {
+      const rand = Math.random();
+      let type = 'bone';
+      let pts = 10;
+      let flyHeight = 40;
+
+      if (rand < 0.25) { type = 'ball'; pts = 25; flyHeight = 60; }
+      else if (rand < 0.5) { type = 'heart'; pts = 50; flyHeight = 75; }
+
+      items.push({
+        x: canvas.width + 60,
+        y: GROUND_Y - flyHeight - 25,
+        width: 28, height: 28,
+        type: type, points: pts
+      });
+    }
+
+    // DESENHAR CENÁRIO
+    function drawBackground() {
+      if (currentStage === 1) {
+        // PRAIA LITORÂNEA
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+        skyGrad.addColorStop(0, '#0284c7');
+        skyGrad.addColorStop(0.5, '#38bdf8');
+        skyGrad.addColorStop(0.85, '#fde047');
+        skyGrad.addColorStop(1, '#fb923c');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, canvas.width, GROUND_Y);
+
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.arc(740, 100, 36, 0, Math.PI * 2);
+        ctx.fill();
+
+        const seaY = GROUND_Y - 95;
+        ctx.fillStyle = '#0369a1';
+        ctx.fillRect(0, seaY, canvas.width, 95);
+
+        ctx.fillStyle = '#38bdf8';
+        const waveOffset = (worldOffset * 0.4) % 60;
+        for (let x = -60; x < canvas.width + 60; x += 40) {
+          ctx.beginPath();
+          ctx.arc(x - waveOffset, seaY + 6, 14, 0, Math.PI);
+          ctx.fill();
+        }
+
+        ctx.fillStyle = '#fed7aa';
+        ctx.fillRect(0, GROUND_Y - 45, canvas.width, 45);
+
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+
+        ctx.fillStyle = '#94a3b8';
+        const roadOffset = (worldOffset) % 40;
+        for (let x = -40; x < canvas.width + 40; x += 40) {
+          ctx.fillRect(x - roadOffset, GROUND_Y + 12, 24, 6);
+          ctx.fillRect(x - roadOffset + 15, GROUND_Y + 45, 24, 6);
+        }
+      } else {
+        // SANTA INÊS (CASA DA VOVÓ)
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+        skyGrad.addColorStop(0, '#1e3a8a');
+        skyGrad.addColorStop(0.4, '#3b82f6');
+        skyGrad.addColorStop(0.8, '#93c5fd');
+        skyGrad.addColorStop(1, '#a7f3d0');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, canvas.width, GROUND_Y);
+
+        ctx.fillStyle = '#065f46';
+        ctx.beginPath();
+        ctx.arc(200, GROUND_Y - 80, 220, Math.PI, 0);
+        ctx.arc(580, GROUND_Y - 70, 260, Math.PI, 0);
+        ctx.arc(880, GROUND_Y - 80, 200, Math.PI, 0);
+        ctx.fill();
+
+        const houseX = 640 - (worldOffset * 0.25) % 1200;
+        ctx.save();
+        ctx.translate(houseX, GROUND_Y - 145);
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 35, 140, 75);
+        ctx.fillStyle = '#b91c1c';
+        ctx.beginPath();
+        ctx.moveTo(-15, 35); ctx.lineTo(70, -10); ctx.lineTo(155, 35);
+        ctx.fill();
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(15, 50, 28, 30);
+        ctx.fillRect(95, 50, 28, 30);
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(58, 60, 24, 50);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(20, 20, 100, 16);
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 9px Plus Jakarta Sans';
+        ctx.fillText('CASA DA VOVÓ', 32, 32);
+        ctx.restore();
+
+        ctx.fillStyle = '#78350f';
+        const fenceOffset = (worldOffset * 0.5) % 50;
+        for (let x = -50; x < canvas.width + 50; x += 40) {
+          ctx.fillRect(x - fenceOffset, GROUND_Y - 32, 6, 32);
+          ctx.fillRect(x - fenceOffset - 10, GROUND_Y - 24, 40, 4);
+          ctx.fillRect(x - fenceOffset - 10, GROUND_Y - 12, 40, 4);
+        }
+
+        ctx.fillStyle = '#15803d';
+        ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+        ctx.fillStyle = '#854d0e';
+        ctx.fillRect(0, GROUND_Y + 12, canvas.width, canvas.height - GROUND_Y - 12);
+      }
+
+      // Nuvens
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+      clouds.forEach(c => {
+        c.x -= c.speed;
+        if (c.x < -100) c.x = canvas.width + 100;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 20 * c.scale, 0, Math.PI * 2);
+        ctx.arc(c.x + 22 * c.scale, c.y - 8 * c.scale, 26 * c.scale, 0, Math.PI * 2);
+        ctx.arc(c.x + 48 * c.scale, c.y, 22 * c.scale, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // DESENHAR FAMILIARES EM PERIGO & RESGATE COM CRACHÁ SUPER LEGÍVEL
+    function drawRescueTargets() {
+      rescueTargets.forEach(tgt => {
+        ctx.save();
+        ctx.translate(tgt.x, tgt.y);
+        tgt.animFrame += 0.15;
+
+        let shirtColor = '#0284c7';
+        let hairColor = '#1e293b';
+        let borderColor = '#38bdf8';
+
+        if (tgt.type === 'kassia') { shirtColor = '#ec4899'; hairColor = '#78350f'; borderColor = '#f472b6'; }
+        else if (tgt.type === 'vovo') { shirtColor = '#8b5cf6'; hairColor = '#94a3b8'; borderColor = '#c084fc'; }
+        else if (tgt.type === 'lorena') { shirtColor = '#10b981'; hairColor = '#b45309'; borderColor = '#34d399'; }
+
+        if (!tgt.saved) {
+          const shake = Math.sin(tgt.animFrame * 2) * 3;
+          ctx.translate(shake, 0);
+
+          // Rede / Perigo
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(-4, -6, 40, 58);
+
+          // BALÃO DE ALERTA GIGANTE E ULTRA LEGÍVEL
+          ctx.fillStyle = '#ef4444';
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(-42, -42, 160, 24, 8);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 11px Fredoka';
+          ctx.fillText(tgt.alertText, -36, -26);
+        } else {
+          // SALVO! COMEMORAÇÃO
+          const jumpJoy = Math.abs(Math.sin(tgt.animFrame)) * 14;
+          ctx.translate(0, -jumpJoy);
+
+          ctx.strokeStyle = '#fed7aa';
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          ctx.moveTo(8, 20); ctx.lineTo(-2, 4);
+          ctx.moveTo(24, 20); ctx.lineTo(34, 4);
+          ctx.stroke();
+        }
+
+        // CRACHÁ FLUTUANTE SUPER LEGÍVEL DO NOME
+        ctx.fillStyle = 'rgba(10, 15, 29, 0.95)';
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(-16, -14, 105, 20, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px Plus Jakarta Sans';
+        ctx.fillText(tgt.name, -10, 0);
+
+        // CABEÇA & CORPO DO PERSONAGEM
+        ctx.fillStyle = '#fed7aa';
+        ctx.beginPath();
+        ctx.arc(16, 12, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = hairColor;
+        ctx.beginPath();
+        ctx.arc(16, 10, 10, Math.PI, 0);
+        ctx.fill();
+
+        ctx.fillStyle = shirtColor;
+        ctx.fillRect(8, 22, 16, 26);
+
+        ctx.restore();
+      });
+    }
+
+    // BALÕES DE FALA & PONTOS FLUTUANTES
+    function drawFloatingTexts() {
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        const ft = floatingTexts[i];
+        ft.y += ft.vy;
+        ft.alpha -= 1 / ft.life;
+
+        if (ft.alpha <= 0) {
+          floatingTexts.splice(i, 1);
+        } else {
+          ctx.save();
+          ctx.globalAlpha = ft.alpha;
+
+          const fSize = ft.isBig ? 14 : 12;
+          const boxW = ft.isBig ? 110 : 250;
+
+          ctx.fillStyle = 'rgba(10, 15, 29, 0.92)';
+          ctx.strokeStyle = ft.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(ft.x - 10, ft.y - 18, boxW, 28, 8);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = ft.color;
+          ctx.font = `bold ${fSize}px Fredoka`;
+          ctx.fillText(ft.text, ft.x, ft.y + 1);
+          ctx.restore();
+        }
+      }
+    }
+
+    // OBSTÁCULOS
+    function drawObstacles() {
+      obstacles.forEach(obs => {
+        ctx.save();
+        ctx.translate(obs.x, obs.y);
+
+        if (obs.type === 'coco') {
+          ctx.fillStyle = '#16a34a';
+          ctx.beginPath();
+          ctx.arc(13, 13, 12, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (obs.type === 'caranguejo') {
+          obs.anim += 0.2;
+          const claw = Math.sin(obs.anim) * 4;
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.ellipse(18, 16, 14, 9, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(4 + claw, 8, 5, 0, Math.PI * 2);
+          ctx.arc(32 - claw, 8, 5, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (obs.type === 'guardasol') {
+          ctx.fillStyle = '#78350f';
+          ctx.fillRect(14, 15, 4, 33);
+          ctx.fillStyle = '#f43f5e';
+          ctx.beginPath();
+          ctx.arc(16, 15, 20, Math.PI, 0);
+          ctx.fill();
+        } else if (obs.type === 'pinto') {
+          obs.anim += 0.25;
+          ctx.fillStyle = '#fde047';
+          ctx.beginPath();
+          ctx.arc(12, 12, 9, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#ea580c';
+          ctx.beginPath();
+          ctx.moveTo(18, 12); ctx.lineTo(23, 14); ctx.lineTo(18, 16);
+          ctx.fill();
+        } else if (obs.type === 'galinha') {
+          ctx.fillStyle = '#b45309';
+          ctx.beginPath();
+          ctx.ellipse(17, 18, 13, 10, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.arc(26, 4, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (obs.type === 'tronco') {
+          ctx.fillStyle = '#78350f';
+          ctx.fillRect(0, 10, 38, 18);
+        }
+
+        ctx.restore();
+      });
+    }
+
+    // PROJÉTEIS
+    function drawProjectiles() {
+      projectiles.forEach(p => {
+        p.rot += 0.3;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+
+        const ballGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, p.radius);
+        ballGrad.addColorStop(0, '#fde047');
+        ballGrad.addColorStop(0.5, '#3b82f6');
+        ballGrad.addColorStop(1, '#ec4899');
+        ctx.fillStyle = ballGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        addParticle(p.x - 10, p.y, '#38bdf8', 2);
+        ctx.restore();
+      });
+    }
+
+    // ITENS
+    function drawItems() {
+      items.forEach(it => {
+        ctx.save();
+        ctx.translate(it.x + 14, it.y + 14);
+        const floatAnim = Math.sin(frameCount * 0.1) * 4;
+        ctx.translate(0, floatAnim);
+
+        if (it.type === 'bone') {
+          ctx.fillStyle = '#fbbf24';
+          ctx.beginPath();
+          ctx.roundRect(-10, -4, 20, 8, 4);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(-10, -5, 4, 0, Math.PI * 2);
+          ctx.arc(-10, 5, 4, 0, Math.PI * 2);
+          ctx.arc(10, -5, 4, 0, Math.PI * 2);
+          ctx.arc(10, 5, 4, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (it.type === 'heart') {
+          ctx.fillStyle = '#ec4899';
+          ctx.beginPath();
+          ctx.moveTo(0, 6);
+          ctx.bezierCurveTo(-10, -4, -10, -12, 0, -8);
+          ctx.bezierCurveTo(10, -12, 10, -4, 0, 6);
+          ctx.fill();
+        } else if (it.type === 'ball') {
+          ctx.fillStyle = '#3b82f6';
+          ctx.beginPath();
+          ctx.arc(0, 0, 11, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.fillStyle = '#fbbf24';
+          ctx.font = 'bold 9px Fredoka';
+          ctx.fillText('⚡', -4, 3);
+        }
+
+        ctx.restore();
+      });
+    }
+
+    // PARTÍCULAS
+    function drawParticles() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= 1 / p.life;
+
+        if (p.alpha <= 0) particles.splice(i, 1);
+        else {
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+    }
+
+    function checkCollision(r1, r2) {
+      const pad = 10;
+      return (
+        r1.x + pad < r2.x + r2.width &&
+        r1.x + r1.width - pad > r2.x &&
+        r1.y + pad < r2.y + r2.height &&
+        r1.y + r1.height - pad > r2.y
+      );
+    }
+
+    function checkCircleRect(circle, rect) {
+      return (
+        circle.x + circle.radius > rect.x &&
+        circle.x - circle.radius < rect.x + rect.width &&
+        circle.y + circle.radius > rect.y &&
+        circle.y - circle.radius < rect.y + rect.height
+      );
+    }
+
+    // GAME LOOP
+    function updateGame() {
+      if (gameState !== 'PLAYING') return;
+
+      frameCount++;
+      distance += Math.floor(gameSpeed * 0.2);
+      distanceDisplay.textContent = `${distance}m`;
+      worldOffset += gameSpeed;
+
+      // TRANSIÇÃO DE FASE AOS 450 METROS
+      if (distance >= 450 && currentStage === 1) {
+        currentStage = 2;
+        stageName.textContent = 'Fase 2: Santa Inês (Casa da Vovó)';
+        stageBadge.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+        soundRescueJoy();
+        stageToast.style.display = 'block';
+        setTimeout(() => { stageToast.style.display = 'none'; }, 3500);
+      }
+
+      gameSpeed = baseSpeed + Math.min(5, distance / 600);
+      lolita.update();
+
+      // EVENTO DE RESGATE DE FAMILIARES
+      nextRescueTimer--;
+      if (nextRescueTimer <= 0) {
+        spawnRescueTarget();
+        nextRescueTimer = Math.floor(Math.random() * 120) + 140;
+      }
+
+      for (let rIdx = rescueTargets.length - 1; rIdx >= 0; rIdx--) {
+        const tgt = rescueTargets[rIdx];
+        tgt.x -= gameSpeed;
+
+        // LOLITA ENCOSTA NO FAMILIAR E SALVA!
+        if (!tgt.saved && checkCollision(lolita, tgt)) {
+          tgt.saved = true;
+          rescuesCount++;
+          rescuesDisplay.textContent = `${rescuesCount} Salvos`;
+          score += 250;
+          scoreDisplay.textContent = score;
+
+          // Latido heróico e som de celebração
+          lolita.bark();
+          soundRescueJoy();
+
+          // TEXTO GRANDE FLUTUANTE DE PONTOS
+          addFloatingText(tgt.x - 10, tgt.y - 45, '🌟 +250 PONTOS DE AMOR! 🌟', '#fbbf24');
+
+          let thankMsg = '❤️ "VALEU LOLITA! PAPAI TE AMA!"';
+          if (tgt.type === 'kassia') thankMsg = '💖 "MINHA HEROÍNA! MAMÃE TE AMA!"';
+          else if (tgt.type === 'vovo') thankMsg = '👵✨ "OBRIGADA MEU AMOR! VOVÓ TE AMA!"';
+          else if (tgt.type === 'lorena') thankMsg = '👧🌟 "VALEU LOLITA! VOCÊ É DEMAIS!"';
+
+          addFloatingText(tgt.x - 20, tgt.y - 18, thankMsg, '#f43f5e');
+          addParticle(tgt.x + 20, tgt.y + 20, '#ec4899', 24);
+        }
+
+        if (tgt.x < -100) rescueTargets.splice(rIdx, 1);
+      }
+
+      // ATUALIZAR PROJÉTEIS
+      for (let pIdx = projectiles.length - 1; pIdx >= 0; pIdx--) {
+        const p = projectiles[pIdx];
+        p.x += p.vx;
+
+        for (let oIdx = obstacles.length - 1; oIdx >= 0; oIdx--) {
+          const obs = obstacles[oIdx];
+          if (checkCircleRect(p, obs)) {
+            soundExplode();
+            addParticle(obs.x + obs.width / 2, obs.y + obs.height / 2, '#fbbf24', 16);
+            score += 50;
+            scoreDisplay.textContent = score;
+            addFloatingText(obs.x, obs.y - 10, '+50 PTS! 💥', '#fbbf24', true);
+            obstacles.splice(oIdx, 1);
+            projectiles.splice(pIdx, 1);
+            break;
+          }
+        }
+
+        if (p.x > canvas.width + 50) projectiles.splice(pIdx, 1);
+      }
+
+      // ATUALIZAR OBSTÁCULOS
+      nextObstacleTimer--;
+      if (nextObstacleTimer <= 0) {
+        spawnObstacle();
+        nextObstacleTimer = Math.floor(Math.random() * 80) + 70;
+      }
+
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.x -= gameSpeed;
+
+        if (checkCollision(lolita, obs)) {
+          triggerGameOver();
+          return;
+        }
+
+        if (obs.x < -60) obstacles.splice(i, 1);
+      }
+
+      // ATUALIZAR ITENS
+      nextItemTimer--;
+      if (nextItemTimer <= 0) {
+        spawnItem();
+        nextItemTimer = Math.floor(Math.random() * 60) + 50;
+      }
+
+      for (let i = items.length - 1; i >= 0; i--) {
+        const it = items[i];
+        it.x -= gameSpeed;
+
+        if (checkCollision(lolita, it)) {
+          score += it.points;
+          scoreDisplay.textContent = score;
+
+          if (it.type === 'heart') {
+            addParticle(it.x + 14, it.y + 14, '#ec4899', 12);
+            addFloatingText(it.x, it.y - 10, '+50 ❤️', '#ec4899', true);
+          } else if (it.type === 'ball') {
+            ballsCount = Math.min(9, ballsCount + 2);
+            ballCounter.textContent = ballsCount;
+            lolita.bark();
+            addParticle(it.x + 14, it.y + 14, '#3b82f6', 15);
+            addFloatingText(it.x, it.y - 10, '+2 BOLAS! ⚡', '#38bdf8', true);
+          } else {
+            soundCollectBone();
+            addParticle(it.x + 14, it.y + 14, '#fbbf24', 8);
+          }
+
+          items.splice(i, 1);
+        } else if (it.x < -60) items.splice(i, 1);
+      }
+    }
+
+    function renderGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackground();
+      drawRescueTargets();
+      drawObstacles();
+      drawProjectiles();
+      drawItems();
+      lolita.draw();
+      drawParticles();
+      drawFloatingTexts();
+    }
+
+    function gameLoop() {
+      updateGame();
+      renderGame();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function startGame() {
+      initAudio();
+      score = 0;
+      distance = 0;
+      rescuesCount = 0;
+      ballsCount = 3;
+      currentStage = 1;
+      gameSpeed = baseSpeed;
+
+      scoreDisplay.textContent = '0';
+      rescuesDisplay.textContent = '0 Salvos';
+      distanceDisplay.textContent = '0m';
+      ballCounter.textContent = '3';
+      stageName.textContent = 'Fase 1: Praia Litorânea';
+      stageBadge.style.background = 'linear-gradient(135deg, rgba(2, 132, 199, 0.85), rgba(6, 182, 212, 0.85))';
+
+      obstacles = [];
+      items = [];
+      projectiles.length = 0;
+      particles.length = 0;
+      rescueTargets = [];
+      floatingTexts.length = 0;
+
+      lolita.reset();
+      lolita.bark();
+
+      if (initialPlayerName && initialPlayerName.value.trim()) {
+        currentPlayerName = initialPlayerName.value.trim();
+      } else {
+        currentPlayerName = 'Papai Sales 👔';
+      }
+      const hp = document.getElementById('hudPlayerName'); if (hp) hp.textContent = currentPlayerName;
+      localStorage.setItem('lolita_current_player', currentPlayerName);
+
+      startScreen.classList.add('hidden');
+      pauseScreen.classList.add('hidden');
+      gameOverScreen.classList.add('hidden');
+      stageToast.style.display = 'none';
+
+      gameState = 'PLAYING';
+    }
+
+    function triggerGameOver() {
+      playTone(180, 'sawtooth', 0.25, 60);
+      addParticle(lolita.x + 25, lolita.y + 25, '#f43f5e', 20);
+      gameState = 'GAMEOVER';
+
+      finalScore.textContent = score;
+      finalRescues.textContent = rescuesCount;
+      finalDistance.textContent = `${distance}m`;
+
+      if (finalPlayerNameInput) finalPlayerNameInput.value = currentPlayerName;
+      btnSaveScore.innerHTML = '<i class="fas fa-check"></i> Gravar Nome';
+      btnSaveScore.style.background = '#10b981';
+      saveScoreRow.style.display = 'flex';
+
+      // Auto-grava a pontuação no ranking oficial!
+      saveToLeaderboard(currentPlayerName, score, rescuesCount);
+
+      document.getElementById('gameOverMsg').textContent = rescuesCount > 0
+        ? `Sensacional! A Lolita salvou a família ${rescuesCount} vezes com muita coragem!`
+        : 'Lolita correu bastante pela orla!';
+
+      setTimeout(() => {
+        gameOverScreen.classList.remove('hidden');
+      }, 350);
+    }
+
+    function togglePause() {
+      if (gameState === 'PLAYING') {
+        gameState = 'PAUSED';
+        pauseScreen.classList.remove('hidden');
+      } else if (gameState === 'PAUSED') {
+        gameState = 'PLAYING';
+        pauseScreen.classList.add('hidden');
+      }
+    }
+
+    // EVENT LISTENERS
+    btnStart.addEventListener('click', startGame);
+    btnResume.addEventListener('click', togglePause);
+    btnRestart.addEventListener('click', startGame);
+    btnPause.addEventListener('click', (e) => { e.stopPropagation(); togglePause(); });
+
+    btnSuperBall.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (gameState === 'PLAYING') lolita.shootSuperBall();
+    });
+
+    btnBark.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (gameState === 'PLAYING') lolita.bark();
+    });
+
+    btnShare.addEventListener('click', () => {
+      const msg = `🏆 RANKING DA FAMÍLIA SALES!\nEu, ${currentPlayerName}, fiz ${score} pontos e salvei a família ${rescuesCount} vezes no jogo da Lolita! Vem bater meu recorde no link: https://nativo360ads.github.io/lolita-run/`;
+      const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+    });
+
+    // TECLADO
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+        e.preventDefault();
+        if (gameState === 'PLAYING') lolita.jump();
+        else if (gameState === 'START') startGame();
+      } else if (e.code === 'KeyB' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+        e.preventDefault();
+        if (gameState === 'PLAYING') lolita.shootSuperBall();
+      } else if (e.code === 'KeyL' || e.code === 'KeyA') {
+        e.preventDefault();
+        if (gameState === 'PLAYING') lolita.bark();
+      } else if (e.code === 'KeyP') {
+        togglePause();
+      }
+    });
+
+    canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (gameState === 'PLAYING') lolita.jump();
+    });
+
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
